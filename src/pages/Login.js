@@ -17,6 +17,7 @@ const Login = () => {
         try {
             const response = await login({ username, password });
             localStorage.setItem('token', response.data.token);
+            localStorage.setItem('username', response.data.username);
             showToastMessage('Login successful!', 'success');
             setTimeout(() => {
                 navigate('/home');

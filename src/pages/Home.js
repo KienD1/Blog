@@ -4,9 +4,9 @@ import { getPosts, deletePostById, likePost, unlikePost, getLikes } from '../ser
 import { FaThumbsUp } from 'react-icons/fa';
 import ToastNotification from '../components/ToastNotification';
 import { Modal, Button } from 'react-bootstrap';
-import '../styles/Home.css'; 
-
-
+import '../styles/Home.css';
+import ScrollToTopButton from '../components/ScrollToTopButton';
+import { FaEdit, FaTrash, FaComment } from 'react-icons/fa';
 
 const Home = () => {
     const [posts, setPosts] = useState([]);
@@ -44,14 +44,14 @@ const Home = () => {
     const fetchLikes = async (posts) => {
         try {
             const token = localStorage.getItem('token');
+            const username = localStorage.getItem('username')
             const likesData = {};
             const userLikes = {};
             for (const post of posts) {
                 const response = await getLikes(token, post.id);
                 likesData[post.id] = response.data.length;
 
-                // Kiểm tra nếu người dùng hiện tại đã like bài viết
-                const userLiked = response.data.some(like => like.username === 'current_user'); // Thay thế 'current_user' bằng giá trị thực tế
+                const userLiked = response.data.some(like => like.username === username);
                 userLikes[post.id] = userLiked;
             }
             setLikes(likesData);
@@ -143,7 +143,7 @@ const Home = () => {
     };
 
     return (
-        <div className="container mt-4">
+        <div className="container mt-4" >
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <input
                     type="text"
@@ -160,22 +160,38 @@ const Home = () => {
                     filteredPosts.map((post) => (
                         <div key={post.id} className="col-md-8 mb-5 animate-slide-in">
                             <div className="card position-relative shadow-lg" style={{ width: '100%', maxWidth: '800px' }}>
-                                {post.image && (
-                                    <img src={post.image} className="card-img-top" alt="Post" style={{ maxHeight: '400px', objectFit: 'cover' }} />
-                                )}
                                 <div className="card-body">
                                     <h5 className="card-title">{post.title}</h5>
-                                    <p className="card-text">{post.content.substring(0, 100)}...</p>
+                                    <div
+                                        className="card-text"
+                                        dangerouslySetInnerHTML={{ __html: post.content.substring(0, 10000) }}
+                                    />
                                     <p className="card-text">
                                         <small className="text-muted">By {post.username}</small>
                                     </p>
                                     <p className="card-text">
-                                        <small className="text-muted">Created at: {new Date(post.createAt).toLocaleDateString()}</small>
+                                        <small className="text-muted">
+                                            <em>Created at: {new Date(post.createAt).toLocaleDateString()}</em>
+                                        </small>
                                     </p>
-                                    <button className="btn btn-warning me-2 mt-2" onClick={() => handleEditPost(post.id)}>Edit</button>
-                                    <button className="btn btn-danger mt-2" onClick={() => handleDeletePost(post.id)}>Delete</button>
+
+                                    <div className="d-flex text-center align-items-end mt-2">
+                                        <FaEdit
+                                            className="text-warning me-3"
+                                            style={{ cursor: 'pointer', fontSize: '1.5rem' }}
+                                            onClick={() => handleEditPost(post.id)}
+                                        />
+                                        <FaTrash
+                                            className="text-danger"
+                                            style={{ cursor: 'pointer', fontSize: '1.5rem' }}
+                                            onClick={() => handleDeletePost(post.id)}
+                                        />
+                                    </div>
                                 </div>
                                 <div className="position-absolute top-0 end-0 p-2">
+                                    <FaComment
+                                        style={{ cursor: 'pointer', color: 'gray', fontSize: '1.5rem', marginRight: '8px' }}
+                                    />
                                     <FaThumbsUp
                                         onClick={() => toggleLike(post.id)}
                                         style={{
@@ -192,6 +208,7 @@ const Home = () => {
                 ) : (
                     <p>No posts available.</p>
                 )}
+                <ScrollToTopButton />
             </div>
             <ToastNotification
                 message={toastMessage}

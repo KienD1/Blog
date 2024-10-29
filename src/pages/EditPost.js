@@ -2,17 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getPostById, updatePostById } from '../services/api';
 import ToastNotification from '../components/ToastNotification';
-import { storage } from '../firebase'; // Giả sử bạn đang dùng Firebase để lưu trữ ảnh
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 const EditPost = () => {
     const { postId } = useParams(); 
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [status, setStatus] = useState('public');
     const [type, setType] = useState('technology');
-    const [image, setImage] = useState(''); // Thêm state cho image
-    const [imageFile, setImageFile] = useState(null);
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
     const [toastType, setToastType] = useState('success');
@@ -28,7 +25,6 @@ const EditPost = () => {
                 setContent(post.content);
                 setStatus(post.status);
                 setType(post.type);
-                setImage(post.image || ''); // Lấy URL của ảnh nếu có
             } catch (err) {
                 showToastMessage('Failed to fetch post data. Please try again.', 'error');
             }
@@ -37,45 +33,19 @@ const EditPost = () => {
         fetchPost();
     }, [postId]);
 
-    const handleImageUpload = (e) => {
-        setImageFile(e.target.files[0]);
-    };
-
     const handleEditPost = async (e) => {
         e.preventDefault();
-        try {
-            const token = localStorage.getItem('token');
-
-            if (imageFile) {
-                // Upload ảnh nếu có ảnh mới được chọn
-                const storageRef = ref(storage, `images/${imageFile.name}`);
-                const uploadTask = uploadBytesResumable(storageRef, imageFile);
-
-                uploadTask.on(
-                    'state_changed',
-                    (snapshot) => {
-                        // Progress function (if needed)
-                    },
-                    (error) => {
-                        showToastMessage(`Failed to upload image: ${error.message}`, 'error');
-                    },
-                    async () => {
-                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                        savePost(downloadURL);
-                    }
-                );
-            } else {
-                savePost(image); // Nếu không có ảnh mới, dùng ảnh cũ
-            }
-        } catch (err) {
-            showToastMessage('Failed to update post. Please try again.', 'error');
-        }
+        savePost();
     };
 
-    const savePost = async (imageUrl) => {
+    const handleCancel = () => {
+        navigate('/home');
+    };
+
+    const savePost = async () => {
         try {
             const token = localStorage.getItem('token');
-            const updatedPost = { title, content, status, type, image: imageUrl };
+            const updatedPost = { title, content, status, type };
             await updatePostById(token, postId, updatedPost);
             showToastMessage('Post updated successfully!', 'success');
             setTimeout(() => {
@@ -108,13 +78,12 @@ const EditPost = () => {
                 </div>
                 <div className="mb-3">
                     <label className="form-label">Content</label>
-                    <textarea 
-                        className="form-control" 
-                        rows="5" 
-                        value={content} 
-                        onChange={(e) => setContent(e.target.value)} 
-                        required 
-                    ></textarea>
+                    <ReactQuill
+                        theme="snow"
+                        value={content}
+                        onChange={setContent}
+                        className="mb-3"
+                    />
                 </div>
                 <div className="mb-3">
                     <label className="form-label">Status</label>
@@ -137,21 +106,8 @@ const EditPost = () => {
                         required 
                     />
                 </div>
-                <div className="mb-3">
-                    <label className="form-label">Image</label>
-                    <input 
-                        type="file" 
-                        className="form-control" 
-                        accept="image/*" 
-                        onChange={handleImageUpload} 
-                    />
-                    {image && (
-                        <div className="mt-3">
-                            <img src={image} alt="Post" style={{ maxWidth: '100%', height: 'auto' }} />
-                        </div>
-                    )}
-                </div>
                 <button type="submit" className="btn btn-primary">Update Post</button>
+                <button type="button" className="btn btn-secondary ms-2" onClick={handleCancel}>Cancel</button>
             </form>
             <ToastNotification
                 message={toastMessage}
