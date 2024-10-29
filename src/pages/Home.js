@@ -20,6 +20,7 @@ const Home = () => {
     const [showModal, setShowModal] = useState(false);
     const [postToDelete, setPostToDelete] = useState(null);
     const navigate = useNavigate();
+    const currentUsername = localStorage.getItem('username');
 
     useEffect(() => {
         const fetchPosts = async () => {
@@ -44,14 +45,12 @@ const Home = () => {
     const fetchLikes = async (posts) => {
         try {
             const token = localStorage.getItem('token');
-            const username = localStorage.getItem('username')
             const likesData = {};
             const userLikes = {};
             for (const post of posts) {
                 const response = await getLikes(token, post.id);
                 likesData[post.id] = response.data.length;
-
-                const userLiked = response.data.some(like => like.username === username);
+                const userLiked = response.data.some(like => like.username === currentUsername);
                 userLikes[post.id] = userLiked;
             }
             setLikes(likesData);
@@ -158,8 +157,8 @@ const Home = () => {
             <div className="d-flex flex-column align-items-center">
                 {filteredPosts.length > 0 ? (
                     filteredPosts.map((post) => (
-                        <div key={post.id} className="col-md-8 mb-5 animate-slide-in">
-                            <div className="card position-relative shadow-lg" style={{ width: '100%', maxWidth: '800px' }}>
+                        <div key={post.id} className="col-md-11 mb-5 animate-slide-in">
+                            <div className="card position-relative shadow-lg" style={{ width: '100%', maxWidth: '1200px' }}>
                                 <div className="card-body">
                                     <h5 className="card-title">{post.title}</h5>
                                     <div
@@ -175,18 +174,20 @@ const Home = () => {
                                         </small>
                                     </p>
 
-                                    <div className="d-flex text-center align-items-end mt-2">
-                                        <FaEdit
-                                            className="text-warning me-3"
-                                            style={{ cursor: 'pointer', fontSize: '1.5rem' }}
-                                            onClick={() => handleEditPost(post.id)}
-                                        />
-                                        <FaTrash
-                                            className="text-danger"
-                                            style={{ cursor: 'pointer', fontSize: '1.5rem' }}
-                                            onClick={() => handleDeletePost(post.id)}
-                                        />
-                                    </div>
+                                    {post.username === currentUsername && (
+                                        <div className="d-flex text-center align-items-end mt-2 position-absolute" style={{ bottom: '10px', right: '10px' }}>
+                                            <FaEdit
+                                                className="text-warning me-3"
+                                                style={{ cursor: 'pointer', fontSize: '1.5rem' }}
+                                                onClick={() => handleEditPost(post.id)}
+                                            />
+                                            <FaTrash
+                                                className="text-danger"
+                                                style={{ cursor: 'pointer', fontSize: '1.5rem' }}
+                                                onClick={() => handleDeletePost(post.id)}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="position-absolute top-0 end-0 p-2">
                                     <FaComment

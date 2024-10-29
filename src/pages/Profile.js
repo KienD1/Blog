@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { FaEdit, FaThumbsUp } from 'react-icons/fa';
+import { FaEdit, FaThumbsUp, FaTrash } from 'react-icons/fa';
 import ToastNotification from '../components/ToastNotification';
+import { Modal, Button } from 'react-bootstrap';
 
 const Profile = () => {
     const [profile, setProfile] = useState({});
@@ -10,6 +11,8 @@ const Profile = () => {
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
     const [toastType, setToastType] = useState('success');
+    const [showModal, setShowModal] = useState(false);
+    const [postToDelete, setPostToDelete] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -68,13 +71,42 @@ const Profile = () => {
         navigate('/home');
     };
 
+    const handleEditPost = (postId) => {
+        navigate(`/edit-post/${postId}`);
+    };
+
+    const handleDeletePost = (postId) => {
+        setPostToDelete(postId);
+        setShowModal(true);
+    };
+
+    const confirmDeletePost = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            await axios.delete(`http://localhost:3000/posts/${postToDelete}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            showToastMessage('Post deleted successfully!', 'success');
+            setUserPosts(userPosts.filter(post => post.id !== postToDelete));
+        } catch (err) {
+            showToastMessage('Failed to delete post. Please try again.', 'error');
+        } finally {
+            setShowModal(false);
+            setPostToDelete(null);
+        }
+    };
+
+    const closeModal = () => {
+        setShowModal(false);
+        setPostToDelete(null);
+    };
+
     return (
         <div className="container my-4">
             <div className="d-flex align-items-center my-2">
                 <button type="button" className="btn btn-secondary me-auto" onClick={handleBack}>Back</button>
                 <h2 className="flex-grow-1 text-center m-0">Profile Information</h2>
             </div>
-
 
             <div className="card mb-4 p-4 d-flex justify-content-start align-items-center shadow-sm">
                 <div className="d-flex justify-content-start align-items-center">
@@ -108,15 +140,27 @@ const Profile = () => {
                             <div className="card-body">
                                 <h5 className="card-title">{post.title}</h5>
                                 <div
-                                        className="card-text"
-                                        dangerouslySetInnerHTML={{ __html: post.content.substring(0, 10000) }}
-                                    />
+                                    className="card-text"
+                                    dangerouslySetInnerHTML={{ __html: post.content.substring(0, 10000) }}
+                                />
                                 <p className="card-text">
                                     <small className="text-muted">Created at: {new Date(post.createAt).toLocaleDateString()}</small>
                                 </p>
                                 <div className="d-flex align-items-center">
                                     <FaThumbsUp style={{ color: 'blue', marginRight: '8px' }} />
                                     <span>{post.likes} Likes</span>
+                                </div>
+                                <div className="d-flex text-center align-items-end mt-2 position-absolute" style={{ bottom: '10px', right: '10px' }}>
+                                    <FaEdit
+                                        className="text-warning me-3"
+                                        style={{ cursor: 'pointer', fontSize: '1.5rem' }}
+                                        onClick={() => handleEditPost(post.id)}
+                                    />
+                                    <FaTrash
+                                        className="text-danger"
+                                        style={{ cursor: 'pointer', fontSize: '1.5rem' }}
+                                        onClick={() => handleDeletePost(post.id)}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -132,6 +176,24 @@ const Profile = () => {
                 show={showToast}
                 onClose={() => setShowToast(false)}
             />
+
+            {/* Modal Confirm Delete */}
+            <Modal show={showModal} onHide={closeModal} centered> 
+                <Modal.Header closeButton>
+                    <Modal.Title>Confirm Delete</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    Are you sure you want to delete this post?
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={closeModal}>
+                        Cancel
+                    </Button>
+                    <Button variant="danger" onClick={confirmDeletePost}>
+                        Delete
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     );
 };
