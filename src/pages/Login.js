@@ -21,7 +21,7 @@ const Login = () => {
             showToastMessage('Login successful!', 'success');
             setTimeout(() => {
                 navigate('/home');
-            }, 1000);
+            }, 1500);
         } catch (err) {
             showToastMessage('Login failed. Please check your credentials.', 'error');
         }

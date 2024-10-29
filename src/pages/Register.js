@@ -52,7 +52,7 @@ const Register = () => {
                 showToastMessage('Registration successful! Redirecting to login...', 'success');
                 setTimeout(() => {
                     navigate('/login');
-                }, 1000);
+                }, 1500);
             } catch (err) {
                 showToastMessage('Registration failed. Please try again.', 'error');
             }

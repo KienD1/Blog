@@ -218,7 +218,7 @@ const Home = () => {
             />
 
             {/* Modal Confirm Delete */}
-            <Modal show={showModal} onHide={closeModal}>
+            <Modal show={showModal} onHide={closeModal} centered> 
                 <Modal.Header closeButton>
                     <Modal.Title>Confirm Delete</Modal.Title>
                 </Modal.Header>
