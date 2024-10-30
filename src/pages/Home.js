@@ -104,11 +104,9 @@ const Home = () => {
         try {
             if (userLikedPosts[postId]) {
                 await unlikePost(token, postId);
-                showToastMessage('Post unliked successfully!', 'success');
                 updateLikes(postId, -1);
             } else {
                 await likePost(token, postId);
-                showToastMessage('Post liked successfully!', 'success');
                 updateLikes(postId, 1);
             }
             setUserLikedPosts((prevState) => ({

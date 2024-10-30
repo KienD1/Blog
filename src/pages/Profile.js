@@ -67,10 +67,6 @@ const Profile = () => {
         navigate('/edit-profile');
     };
 
-    const handleBack = () => {
-        navigate('/home');
-    };
-
     const handleEditPost = (postId) => {
         navigate(`/edit-post/${postId}`);
     };
@@ -104,7 +100,6 @@ const Profile = () => {
     return (
         <div className="container my-4">
             <div className="d-flex align-items-center my-2">
-                <button type="button" className="btn btn-secondary me-auto" onClick={handleBack}>Back</button>
                 <h2 className="flex-grow-1 text-center m-0">Profile Information</h2>
             </div>
 
